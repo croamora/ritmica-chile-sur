@@ -61,6 +61,7 @@ const allEntries = [
 const scoresStore = new Map();
 let currentView = "orden";
 let repaintTimer = null;
+const orderNodeRefs = new Map();
 
 function getDocId(item) {
   return `2026-${item.uid ?? `${item.day}-${item.banca}-${item.n}`}`;
@@ -116,11 +117,21 @@ function subscribeAllScores() {
     collection(db, "scores"),
     (snap) => {
       snap.docChanges().forEach((change) => {
-        if (change.type === "removed") scoresStore.delete(change.doc.id);
-        else scoresStore.set(change.doc.id, change.doc.data() || { score: "", notes: "" });
+        if (change.type === "removed") {
+          scoresStore.delete(change.doc.id);
+          return;
+        }
+
+        const data = change.doc.data() || { score: "", notes: "" };
+        scoresStore.set(change.doc.id, data);
+        const refs = orderNodeRefs.get(change.doc.id);
+        if (refs) {
+          if (document.activeElement !== refs.scoreInput) refs.scoreInput.value = data.score ?? "";
+          if (document.activeElement !== refs.notesInput) refs.notesInput.value = data.notes ?? "";
+        }
       });
       syncStatus.textContent = "Sincronizado en vivo";
-      scheduleRepaint();
+      if (currentView === "ranking") scheduleRepaint();
     },
     () => {
       syncStatus.textContent = "Sin conexion";
@@ -175,6 +186,7 @@ function injectBreaks(day, filteredItems, totalLength) {
 
 function renderOrden() {
   list.innerHTML = "";
+  orderNodeRefs.clear();
 
   const items = getFilteredOrdenItems();
   const day = ordenDaySelect.value;
@@ -185,7 +197,16 @@ function renderOrden() {
     return;
   }
 
-  items.forEach((item) => {
+  const queue = [...items];
+  const chunkSize = 28;
+
+  function drawChunk() {
+    const batch = queue.splice(0, chunkSize);
+    if (!batch.length) return;
+
+    const fragment = document.createDocumentFragment();
+
+    batch.forEach((item) => {
     if (item.kind === "break") {
       const breakNode = document.createElement("article");
       breakNode.className = "break-card";
@@ -193,7 +214,7 @@ function renderOrden() {
         <p class="break-title">${item.day === "sabado" ? "Sabado" : "Domingo"}</p>
         <p class="break-text">${item.label}</p>
       `;
-      list.appendChild(breakNode);
+      fragment.appendChild(breakNode);
       return;
     }
 
@@ -232,8 +253,15 @@ function renderOrden() {
     const current = scoresStore.get(id) || { score: "", notes: "" };
     scoreInput.value = current.score ?? "";
     notesInput.value = current.notes ?? "";
-    list.appendChild(node);
-  });
+    orderNodeRefs.set(id, { scoreInput, notesInput });
+    fragment.appendChild(node);
+    });
+
+    list.appendChild(fragment);
+    if (queue.length) requestAnimationFrame(drawChunk);
+  }
+
+  requestAnimationFrame(drawChunk);
 }
 
 function getRankingSource() {

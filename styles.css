@@ -130,6 +130,8 @@ h1 {
   background: var(--surface);
   padding: 12px;
   box-shadow: 0 8px 24px rgba(17, 44, 80, 0.06);
+  content-visibility: auto;
+  contain-intrinsic-size: 220px;
 }
 
 .break-card {
@@ -137,6 +139,8 @@ h1 {
   border-radius: var(--radius);
   background: #eef5ff;
   padding: 12px;
+  content-visibility: auto;
+  contain-intrinsic-size: 90px;
 }
 
 .break-title {
