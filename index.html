@@ -24,9 +24,42 @@
     </header>
 
     <main class="container">
-      <section class="tabs" aria-label="Seleccion de jornada">
-        <button class="tab is-active" data-day="sabado" type="button">Sabado</button>
-        <button class="tab" data-day="domingo" type="button">Domingo</button>
+      <section class="tabs" aria-label="Seleccion de vista">
+        <button class="tab is-active" data-view="orden" type="button">Orden</button>
+        <button class="tab" data-view="ranking" type="button">Lugares</button>
+      </section>
+
+      <section id="ordenFilters" class="filters" aria-label="Filtros orden">
+        <label>
+          Dia
+          <select id="ordenDay">
+            <option value="sabado">Sabado</option>
+            <option value="domingo">Domingo</option>
+          </select>
+        </label>
+        <label>
+          Club
+          <select id="ordenClub">
+            <option value="todos">Todos</option>
+          </select>
+        </label>
+      </section>
+
+      <section id="rankingFilters" class="filters hidden" aria-label="Filtros ranking">
+        <label>
+          Dia
+          <select id="rankingDay">
+            <option value="todos">Todos</option>
+            <option value="sabado">Sabado</option>
+            <option value="domingo">Domingo</option>
+          </select>
+        </label>
+        <label>
+          Club
+          <select id="rankingClub">
+            <option value="todos">Todos</option>
+          </select>
+        </label>
       </section>
 
       <section class="statusbar">
@@ -35,6 +68,7 @@
       </section>
 
       <section id="list" class="list" aria-live="polite"></section>
+      <section id="rankingList" class="ranking-list hidden" aria-live="polite"></section>
     </main>
 
     <template id="itemTemplate">
