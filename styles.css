@@ -105,6 +105,19 @@ h1 {
   color: var(--ink);
 }
 
+.filters input {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  font: inherit;
+  color: var(--ink);
+}
+
+.filter-wide {
+  grid-column: 1 / -1;
+}
+
 .list {
   margin-top: 14px;
   display: grid;

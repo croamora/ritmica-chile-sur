@@ -31,8 +31,10 @@ const ordenFilters = document.querySelector("#ordenFilters");
 const rankingFilters = document.querySelector("#rankingFilters");
 const ordenDaySelect = document.querySelector("#ordenDay");
 const ordenClubSelect = document.querySelector("#ordenClub");
+const ordenSearchInput = document.querySelector("#ordenSearch");
 const rankingDaySelect = document.querySelector("#rankingDay");
 const rankingClubSelect = document.querySelector("#rankingClub");
+const rankingCategorySelect = document.querySelector("#rankingCategory");
 
 const byDay = {
   sabado: { title: "Fecha Sur 1 - 2026", items: sabado },
@@ -40,8 +42,8 @@ const byDay = {
 };
 
 const allEntries = [
-  ...sabado.map((item) => ({ ...item, day: "sabado" })),
-  ...domingo.map((item) => ({ ...item, day: "domingo" }))
+  ...sabado.map((item, idx) => ({ ...item, day: "sabado", uid: `sabado-${idx + 1}` })),
+  ...domingo.map((item, idx) => ({ ...item, day: "domingo", uid: `domingo-${idx + 1}` }))
 ];
 
 const scoresStore = new Map();
@@ -49,7 +51,7 @@ const scoreUnsubs = [];
 let currentView = "orden";
 
 function getDocId(item) {
-  return `2026-${item.day}-${item.banca}-${item.n}`;
+  return `2026-${item.uid ?? `${item.day}-${item.banca}-${item.n}`}`;
 }
 
 function normalizeScore(raw) {
@@ -75,6 +77,28 @@ function buildClubOptions() {
   });
 }
 
+function updateRankingCategoryOptions() {
+  const selectedDay = rankingDaySelect.value;
+  const selectedClub = rankingClubSelect.value;
+  const categories = [...new Set(
+    allEntries
+      .filter((item) => (selectedDay === "todos" ? true : item.day === selectedDay))
+      .filter((item) => (selectedClub === "todos" ? true : item.club === selectedClub))
+      .map((item) => item.categoria)
+  )].sort((a, b) => a.localeCompare(b, "es"));
+
+  const current = rankingCategorySelect.value;
+  rankingCategorySelect.innerHTML = '<option value="todos">Todas</option>';
+  categories.forEach((categoria) => {
+    const option = document.createElement("option");
+    option.value = categoria;
+    option.textContent = categoria;
+    rankingCategorySelect.appendChild(option);
+  });
+
+  if (categories.includes(current)) rankingCategorySelect.value = current;
+}
+
 function subscribeAllScores() {
   allEntries.forEach((item) => {
     const id = getDocId(item);
@@ -98,8 +122,15 @@ function subscribeAllScores() {
 function getFilteredOrdenItems() {
   const day = ordenDaySelect.value;
   const club = ordenClubSelect.value;
+  const search = ordenSearchInput.value.trim().toLowerCase();
   const base = byDay[day].items.map((item) => ({ ...item, day }));
-  return club === "todos" ? base : base.filter((x) => x.club === club);
+  const enriched = base.map((item, idx) => ({ ...item, uid: `${day}-${idx + 1}` }));
+  return enriched
+    .filter((x) => (club === "todos" ? true : x.club === club))
+    .filter((x) => {
+      if (!search) return true;
+      return `${x.nombre} ${x.club} ${x.categoria}`.toLowerCase().includes(search);
+    });
 }
 
 function renderOrden() {
@@ -157,10 +188,12 @@ function renderOrden() {
 function getRankingSource() {
   const selectedDay = rankingDaySelect.value;
   const selectedClub = rankingClubSelect.value;
+  const selectedCategory = rankingCategorySelect.value;
   return allEntries.filter((item) => {
     const matchesDay = selectedDay === "todos" ? true : item.day === selectedDay;
     const matchesClub = selectedClub === "todos" ? true : item.club === selectedClub;
-    return matchesDay && matchesClub;
+    const matchesCategory = selectedCategory === "todos" ? true : item.categoria === selectedCategory;
+    return matchesDay && matchesClub && matchesCategory;
   });
 }
 
@@ -242,7 +275,17 @@ subscribeAllScores();
 viewTabs.forEach((tab) => tab.addEventListener("click", () => switchView(tab.dataset.view)));
 ordenDaySelect.addEventListener("change", renderOrden);
 ordenClubSelect.addEventListener("change", renderOrden);
-rankingDaySelect.addEventListener("change", renderRanking);
-rankingClubSelect.addEventListener("change", renderRanking);
+ordenSearchInput.addEventListener("input", renderOrden);
+rankingDaySelect.addEventListener("change", () => {
+  updateRankingCategoryOptions();
+  renderRanking();
+});
+rankingClubSelect.addEventListener("change", () => {
+  updateRankingCategoryOptions();
+  renderRanking();
+});
+rankingCategorySelect.addEventListener("change", renderRanking);
+
+updateRankingCategoryOptions();
 
 renderOrden();
