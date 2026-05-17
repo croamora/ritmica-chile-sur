@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
   getFirestore,
+  collection,
   doc,
   onSnapshot,
   setDoc,
@@ -58,8 +59,8 @@ const allEntries = [
 ];
 
 const scoresStore = new Map();
-const scoreUnsubs = [];
 let currentView = "orden";
+let repaintTimer = null;
 
 function getDocId(item) {
   return `2026-${item.uid ?? `${item.day}-${item.banca}-${item.n}`}`;
@@ -111,23 +112,29 @@ function updateRankingCategoryOptions() {
 }
 
 function subscribeAllScores() {
-  allEntries.forEach((item) => {
-    const id = getDocId(item);
-    const unsub = onSnapshot(
-      doc(db, "scores", id),
-      (snap) => {
-        const data = snap.data() || { score: "", notes: "" };
-        scoresStore.set(id, data);
-        syncStatus.textContent = "Sincronizado en vivo";
-        if (currentView === "orden") renderOrden();
-        if (currentView === "ranking") renderRanking();
-      },
-      () => {
-        syncStatus.textContent = "Sin conexion";
-      }
-    );
-    scoreUnsubs.push(unsub);
-  });
+  onSnapshot(
+    collection(db, "scores"),
+    (snap) => {
+      snap.docChanges().forEach((change) => {
+        if (change.type === "removed") scoresStore.delete(change.doc.id);
+        else scoresStore.set(change.doc.id, change.doc.data() || { score: "", notes: "" });
+      });
+      syncStatus.textContent = "Sincronizado en vivo";
+      scheduleRepaint();
+    },
+    () => {
+      syncStatus.textContent = "Sin conexion";
+    }
+  );
+}
+
+function scheduleRepaint() {
+  if (repaintTimer) return;
+  repaintTimer = setTimeout(() => {
+    repaintTimer = null;
+    if (currentView === "orden") renderOrden();
+    else renderRanking();
+  }, 50);
 }
 
 function getFilteredOrdenItems() {
