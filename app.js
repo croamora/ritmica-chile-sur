@@ -268,29 +268,52 @@ function getRankingSource() {
   const selectedDay = rankingDaySelect.value;
   const selectedClub = rankingClubSelect.value;
   const selectedCategory = rankingCategorySelect.value;
-  return allEntries.filter((item) => {
+  const base = allEntries.filter((item) => {
     const matchesDay = selectedDay === "todos" ? true : item.day === selectedDay;
-    const matchesClub = selectedClub === "todos" ? true : item.club === selectedClub;
     const matchesCategory = selectedCategory === "todos" ? true : item.categoria === selectedCategory;
-    return matchesDay && matchesClub && matchesCategory;
+    return matchesDay && matchesCategory;
   });
+
+  const visible = base.filter((item) => (selectedClub === "todos" ? true : item.club === selectedClub));
+  return { visible, base };
 }
 
 function renderRanking() {
   rankingList.innerHTML = "";
   eventName.textContent = "Lugares por categoria";
 
-  const source = getRankingSource();
-  const withScores = source.map((item) => {
+  const { visible, base } = getRankingSource();
+  const withScores = visible.map((item) => {
     const id = getDocId(item);
     const score = Number(scoresStore.get(id)?.score);
     return { ...item, score: Number.isNaN(score) ? null : score };
   });
 
-  if (!source.length) {
+  if (!visible.length) {
     rankingList.innerHTML = '<article class="card"><p>No hay participantes para este filtro.</p></article>';
     return;
   }
+
+  const rankByUid = new Map();
+  const groupedBase = new Map();
+  base.forEach((item) => {
+    if (!groupedBase.has(item.categoria)) groupedBase.set(item.categoria, []);
+    const id = getDocId(item);
+    const score = Number(scoresStore.get(id)?.score);
+    groupedBase.get(item.categoria).push({ ...item, score: Number.isNaN(score) ? null : score });
+  });
+
+  groupedBase.forEach((items) => {
+    const sorted = [...items].sort((a, b) => {
+      const aHas = a.score !== null;
+      const bHas = b.score !== null;
+      if (aHas && bHas) return b.score - a.score;
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      return a.nombre.localeCompare(b.nombre, "es");
+    });
+    sorted.forEach((item, idx) => rankByUid.set(item.uid, idx + 1));
+  });
 
   const grouped = new Map();
   withScores.forEach((item) => {
@@ -319,11 +342,12 @@ function renderRanking() {
           if (!aHas && bHas) return 1;
           return a.nombre.localeCompare(b.nombre, "es");
         })
-        .forEach((entry, idx) => {
+        .forEach((entry) => {
           const row = document.createElement("div");
           row.className = "ranking-item";
+          const place = rankByUid.get(entry.uid) ?? "-";
           row.innerHTML = `
-            <span class="place">${idx + 1}</span>
+            <span class="place">${place}</span>
             <div>
               <strong>${entry.nombre}</strong>
               <div class="ranking-meta">${entry.club} - ${entry.day === "sabado" ? "Sabado" : "Domingo"}</div>
