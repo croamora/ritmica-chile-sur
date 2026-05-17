@@ -281,16 +281,14 @@ function renderRanking() {
   eventName.textContent = "Lugares por categoria";
 
   const source = getRankingSource();
-  const withScores = source
-    .map((item) => {
-      const id = getDocId(item);
-      const score = Number(scoresStore.get(id)?.score);
-      return { ...item, score: Number.isNaN(score) ? null : score };
-    })
-    .filter((x) => x.score !== null);
+  const withScores = source.map((item) => {
+    const id = getDocId(item);
+    const score = Number(scoresStore.get(id)?.score);
+    return { ...item, score: Number.isNaN(score) ? null : score };
+  });
 
-  if (!withScores.length) {
-    rankingList.innerHTML = '<article class="card"><p>No hay puntajes para este filtro.</p></article>';
+  if (!source.length) {
+    rankingList.innerHTML = '<article class="card"><p>No hay participantes para este filtro.</p></article>';
     return;
   }
 
@@ -313,7 +311,14 @@ function renderRanking() {
 
       grouped
         .get(categoria)
-        .sort((a, b) => b.score - a.score)
+        .sort((a, b) => {
+          const aHas = a.score !== null;
+          const bHas = b.score !== null;
+          if (aHas && bHas) return b.score - a.score;
+          if (aHas && !bHas) return -1;
+          if (!aHas && bHas) return 1;
+          return a.nombre.localeCompare(b.nombre, "es");
+        })
         .forEach((entry, idx) => {
           const row = document.createElement("div");
           row.className = "ranking-item";
@@ -323,7 +328,7 @@ function renderRanking() {
               <strong>${entry.nombre}</strong>
               <div class="ranking-meta">${entry.club} - ${entry.day === "sabado" ? "Sabado" : "Domingo"}</div>
             </div>
-            <span class="ranking-score">${entry.score.toFixed(2)}</span>
+            <span class="ranking-score">${entry.score === null ? "--" : entry.score.toFixed(2)}</span>
           `;
           groupWrap.appendChild(row);
         });
