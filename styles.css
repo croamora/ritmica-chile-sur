@@ -132,6 +132,24 @@ h1 {
   box-shadow: 0 8px 24px rgba(17, 44, 80, 0.06);
 }
 
+.break-card {
+  border: 1px dashed #9ab7df;
+  border-radius: var(--radius);
+  background: #eef5ff;
+  padding: 12px;
+}
+
+.break-title {
+  margin: 0;
+  font-weight: 700;
+  color: #164987;
+}
+
+.break-text {
+  margin: 4px 0 0;
+  color: #2f4c73;
+}
+
 .row.top {
   display: flex;
   justify-content: space-between;

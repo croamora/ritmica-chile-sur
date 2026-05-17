@@ -41,6 +41,17 @@ const byDay = {
   domingo: { title: "Fecha Centro 1 - 2026", items: domingo }
 };
 
+const breakDefinitions = {
+  sabado: [
+    { after: 128, label: "Break 1 hora - premiacion. Vuelve 15:00 a 20:00" },
+    { after: 263, label: "Break 15 minutos - 20:15 a 21:45" }
+  ],
+  domingo: [
+    { after: 94, label: "Break 1 hora - premiacion. 13:30 a 15:45" },
+    { after: 159, label: "Break 30 minutos - 15:45 a 17:30" }
+  ]
+};
+
 const allEntries = [
   ...sabado.map((item, idx) => ({ ...item, day: "sabado", uid: `sabado-${idx + 1}` })),
   ...domingo.map((item, idx) => ({ ...item, day: "domingo", uid: `domingo-${idx + 1}` }))
@@ -125,12 +136,34 @@ function getFilteredOrdenItems() {
   const search = ordenSearchInput.value.trim().toLowerCase();
   const base = byDay[day].items.map((item) => ({ ...item, day }));
   const enriched = base.map((item, idx) => ({ ...item, uid: `${day}-${idx + 1}` }));
-  return enriched
+  const filtered = enriched
     .filter((x) => (club === "todos" ? true : x.club === club))
     .filter((x) => {
       if (!search) return true;
       return `${x.nombre} ${x.club} ${x.categoria}`.toLowerCase().includes(search);
     });
+
+  return injectBreaks(day, filtered, enriched.length);
+}
+
+function injectBreaks(day, filteredItems, totalLength) {
+  const itemsWithBreaks = [...filteredItems];
+  const breaks = breakDefinitions[day] || [];
+
+  breaks.forEach((pause) => {
+    if (pause.after > totalLength) return;
+    const insertAt = itemsWithBreaks.findIndex((item) => Number(item.uid.split("-")[1]) > pause.after);
+    const breakItem = {
+      kind: "break",
+      uid: `${day}-break-${pause.after}`,
+      day,
+      label: pause.label
+    };
+    if (insertAt === -1) itemsWithBreaks.push(breakItem);
+    else itemsWithBreaks.splice(insertAt, 0, breakItem);
+  });
+
+  return itemsWithBreaks;
 }
 
 function renderOrden() {
@@ -146,6 +179,17 @@ function renderOrden() {
   }
 
   items.forEach((item) => {
+    if (item.kind === "break") {
+      const breakNode = document.createElement("article");
+      breakNode.className = "break-card";
+      breakNode.innerHTML = `
+        <p class="break-title">${item.day === "sabado" ? "Sabado" : "Domingo"}</p>
+        <p class="break-text">${item.label}</p>
+      `;
+      list.appendChild(breakNode);
+      return;
+    }
+
     const id = getDocId(item);
     const node = template.content.firstElementChild.cloneNode(true);
     const scoreInput = node.querySelector(".score-input");
@@ -154,7 +198,7 @@ function renderOrden() {
     node.querySelector(".chip").textContent = `Banca ${item.banca} #${item.n}`;
     node.querySelector(".category").textContent = item.categoria;
     node.querySelector(".name").textContent = item.nombre;
-    node.querySelector(".meta").textContent = item.club;
+    node.querySelector(".meta").textContent = `${item.club} · ${item.day === "sabado" ? "Sabado" : "Domingo"}`;
 
     scoreInput.addEventListener("input", (e) => {
       e.target.value = e.target.value.replace(/[^0-9.,]/g, "");
