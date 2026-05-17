@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ritmica Chile - Orden de Paso</title>
+    <meta
+      name="description"
+      content="Orden de paso de gimnastas con puntajes y notas en tiempo real"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Sora:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <p class="kicker">Ritmica Chile 2026</p>
+      <h1>Orden de Paso</h1>
+      <p class="subtitle">Puntajes y notas sincronizadas en vivo</p>
+    </header>
+
+    <main class="container">
+      <section class="tabs" aria-label="Seleccion de jornada">
+        <button class="tab is-active" data-day="sabado" type="button">Sabado</button>
+        <button class="tab" data-day="domingo" type="button">Domingo</button>
+      </section>
+
+      <section class="statusbar">
+        <span id="eventName">Fecha Sur 1 - 2026</span>
+        <span id="syncStatus">Conectando...</span>
+      </section>
+
+      <section id="list" class="list" aria-live="polite"></section>
+    </main>
+
+    <template id="itemTemplate">
+      <article class="card">
+        <div class="row top">
+          <p class="chip"></p>
+          <p class="category"></p>
+        </div>
+        <h2 class="name"></h2>
+        <p class="meta"></p>
+
+        <div class="score-row">
+          <label>Puntaje</label>
+          <input class="score-input" inputmode="decimal" type="text" placeholder="0.00" />
+        </div>
+
+        <details class="notes-wrap">
+          <summary>Notas</summary>
+          <textarea class="notes-input" rows="3" placeholder="Agregar observaciones..."></textarea>
+        </details>
+      </article>
+    </template>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
