@@ -4,11 +4,12 @@ service cloud.firestore {
     match /scores/{docId} {
       allow read: if true;
       allow write: if
-        request.resource.data.keys().hasOnly(['score', 'notes', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['score', 'notes', 'passed', 'updatedAt']) &&
         request.resource.data.score is string &&
         request.resource.data.score.size() <= 10 &&
         request.resource.data.notes is string &&
-        request.resource.data.notes.size() <= 500;
+        request.resource.data.notes.size() <= 500 &&
+        request.resource.data.passed is bool;
     }
   }
 }

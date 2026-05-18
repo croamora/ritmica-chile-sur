@@ -215,6 +215,20 @@ h1 {
   border-color: #7db1f4;
 }
 
+.passed-row {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #2a3f5a;
+  font-weight: 600;
+}
+
+.passed-input {
+  width: 18px;
+  height: 18px;
+}
+
 .notes-wrap {
   margin-top: 10px;
 }

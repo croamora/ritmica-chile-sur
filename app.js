@@ -128,6 +128,7 @@ function subscribeAllScores() {
         if (refs) {
           if (document.activeElement !== refs.scoreInput) refs.scoreInput.value = data.score ?? "";
           if (document.activeElement !== refs.notesInput) refs.notesInput.value = data.notes ?? "";
+          refs.passedInput.checked = Boolean(data.passed);
         }
       });
       syncStatus.textContent = "Sincronizado en vivo";
@@ -222,6 +223,7 @@ function renderOrden() {
     const node = template.content.firstElementChild.cloneNode(true);
     const scoreInput = node.querySelector(".score-input");
     const notesInput = node.querySelector(".notes-input");
+    const passedInput = node.querySelector(".passed-input");
 
     node.querySelector(".chip").textContent = `Banca ${item.banca} #${item.n}`;
     node.querySelector(".category").textContent = item.categoria;
@@ -237,7 +239,7 @@ function renderOrden() {
       scoreInput.value = score;
       await setDoc(
         doc(db, "scores", id),
-        { score, notes: notesInput.value.trim(), updatedAt: serverTimestamp() },
+        { score, notes: notesInput.value.trim(), passed: passedInput.checked, updatedAt: serverTimestamp() },
         { merge: true }
       );
     });
@@ -245,7 +247,25 @@ function renderOrden() {
     notesInput.addEventListener("blur", async () => {
       await setDoc(
         doc(db, "scores", id),
-        { score: normalizeScore(scoreInput.value), notes: notesInput.value.trim(), updatedAt: serverTimestamp() },
+        {
+          score: normalizeScore(scoreInput.value),
+          notes: notesInput.value.trim(),
+          passed: passedInput.checked,
+          updatedAt: serverTimestamp()
+        },
+        { merge: true }
+      );
+    });
+
+    passedInput.addEventListener("change", async () => {
+      await setDoc(
+        doc(db, "scores", id),
+        {
+          score: normalizeScore(scoreInput.value),
+          notes: notesInput.value.trim(),
+          passed: passedInput.checked,
+          updatedAt: serverTimestamp()
+        },
         { merge: true }
       );
     });
@@ -253,7 +273,8 @@ function renderOrden() {
     const current = scoresStore.get(id) || { score: "", notes: "" };
     scoreInput.value = current.score ?? "";
     notesInput.value = current.notes ?? "";
-    orderNodeRefs.set(id, { scoreInput, notesInput });
+    passedInput.checked = Boolean(current.passed);
+    orderNodeRefs.set(id, { scoreInput, notesInput, passedInput });
     fragment.appendChild(node);
     });
 
