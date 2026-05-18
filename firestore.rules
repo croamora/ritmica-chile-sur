@@ -10,7 +10,7 @@ service cloud.firestore {
         request.resource.data.notes is string &&
         request.resource.data.notes.size() <= 500 &&
         (
-          !('passed' in request.resource.data) ||
+          !request.resource.data.keys().hasAny(['passed']) ||
           request.resource.data.passed is bool
         );
     }

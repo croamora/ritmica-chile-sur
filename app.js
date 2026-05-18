@@ -75,6 +75,25 @@ function normalizeScore(raw) {
   return value.toFixed(2);
 }
 
+async function saveEntry(id, scoreInput, notesInput, passedInput) {
+  try {
+    await setDoc(
+      doc(db, "scores", id),
+      {
+        score: normalizeScore(scoreInput.value),
+        notes: notesInput.value.trim(),
+        passed: passedInput.checked,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+    syncStatus.textContent = "Guardado";
+  } catch (error) {
+    syncStatus.textContent = "Error de permisos al guardar";
+    console.error(error);
+  }
+}
+
 function buildClubOptions() {
   const clubs = [...new Set(allEntries.map((x) => x.club))].sort((a, b) => a.localeCompare(b, "es"));
   clubs.forEach((club) => {
@@ -235,39 +254,16 @@ function renderOrden() {
     });
 
     scoreInput.addEventListener("blur", async () => {
-      const score = normalizeScore(scoreInput.value);
-      scoreInput.value = score;
-      await setDoc(
-        doc(db, "scores", id),
-        { score, notes: notesInput.value.trim(), passed: passedInput.checked, updatedAt: serverTimestamp() },
-        { merge: true }
-      );
+      scoreInput.value = normalizeScore(scoreInput.value);
+      await saveEntry(id, scoreInput, notesInput, passedInput);
     });
 
     notesInput.addEventListener("blur", async () => {
-      await setDoc(
-        doc(db, "scores", id),
-        {
-          score: normalizeScore(scoreInput.value),
-          notes: notesInput.value.trim(),
-          passed: passedInput.checked,
-          updatedAt: serverTimestamp()
-        },
-        { merge: true }
-      );
+      await saveEntry(id, scoreInput, notesInput, passedInput);
     });
 
     passedInput.addEventListener("change", async () => {
-      await setDoc(
-        doc(db, "scores", id),
-        {
-          score: normalizeScore(scoreInput.value),
-          notes: notesInput.value.trim(),
-          passed: passedInput.checked,
-          updatedAt: serverTimestamp()
-        },
-        { merge: true }
-      );
+      await saveEntry(id, scoreInput, notesInput, passedInput);
     });
 
     const current = scoresStore.get(id) || { score: "", notes: "" };
