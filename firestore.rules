@@ -9,7 +9,10 @@ service cloud.firestore {
         request.resource.data.score.size() <= 10 &&
         request.resource.data.notes is string &&
         request.resource.data.notes.size() <= 500 &&
-        request.resource.data.passed is bool;
+        (
+          !('passed' in request.resource.data) ||
+          request.resource.data.passed is bool
+        );
     }
   }
 }

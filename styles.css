@@ -157,8 +157,14 @@ h1 {
 .row.top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
+}
+
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .chip {
@@ -222,6 +228,11 @@ h1 {
   gap: 8px;
   color: #2a3f5a;
   font-weight: 600;
+}
+
+.passed-row-top {
+  margin-top: 0;
+  font-size: 0.85rem;
 }
 
 .passed-input {
