@@ -75,14 +75,13 @@ function normalizeScore(raw) {
   return value.toFixed(2);
 }
 
-async function saveEntry(id, scoreInput, notesInput, passedInput) {
+async function saveScoreAndNotes(id, scoreInput, notesInput) {
   try {
     await setDoc(
       doc(db, "scores", id),
       {
         score: normalizeScore(scoreInput.value),
         notes: notesInput.value.trim(),
-        passed: passedInput.checked,
         updatedAt: serverTimestamp()
       },
       { merge: true }
@@ -90,6 +89,23 @@ async function saveEntry(id, scoreInput, notesInput, passedInput) {
     syncStatus.textContent = "Guardado";
   } catch (error) {
     syncStatus.textContent = "Error de permisos al guardar";
+    console.error(error);
+  }
+}
+
+async function savePassed(id, passedInput) {
+  try {
+    await setDoc(
+      doc(db, "scores", id),
+      {
+        passed: passedInput.checked,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+    syncStatus.textContent = "Guardado";
+  } catch (error) {
+    syncStatus.textContent = "Error de permisos (reglas Firebase)";
     console.error(error);
   }
 }
@@ -255,15 +271,15 @@ function renderOrden() {
 
     scoreInput.addEventListener("blur", async () => {
       scoreInput.value = normalizeScore(scoreInput.value);
-      await saveEntry(id, scoreInput, notesInput, passedInput);
+      await saveScoreAndNotes(id, scoreInput, notesInput);
     });
 
     notesInput.addEventListener("blur", async () => {
-      await saveEntry(id, scoreInput, notesInput, passedInput);
+      await saveScoreAndNotes(id, scoreInput, notesInput);
     });
 
     passedInput.addEventListener("change", async () => {
-      await saveEntry(id, scoreInput, notesInput, passedInput);
+      await savePassed(id, passedInput);
     });
 
     const current = scoresStore.get(id) || { score: "", notes: "" };
