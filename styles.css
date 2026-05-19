@@ -134,6 +134,12 @@ h1 {
   contain-intrinsic-size: 220px;
 }
 
+.card.is-passed {
+  border-color: #84c59b;
+  background: #edf9f0;
+  box-shadow: 0 8px 24px rgba(17, 124, 68, 0.12);
+}
+
 .break-card {
   border: 1px dashed #9ab7df;
   border-radius: var(--radius);

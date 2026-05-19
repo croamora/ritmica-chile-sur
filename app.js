@@ -164,6 +164,7 @@ function subscribeAllScores() {
           if (document.activeElement !== refs.scoreInput) refs.scoreInput.value = data.score ?? "";
           if (document.activeElement !== refs.notesInput) refs.notesInput.value = data.notes ?? "";
           refs.passedInput.checked = Boolean(data.passed);
+          refs.card.classList.toggle("is-passed", Boolean(data.passed));
         }
       });
       syncStatus.textContent = "Sincronizado en vivo";
@@ -279,6 +280,7 @@ function renderOrden() {
     });
 
     passedInput.addEventListener("change", async () => {
+      node.classList.toggle("is-passed", passedInput.checked);
       await savePassed(id, passedInput);
     });
 
@@ -286,7 +288,8 @@ function renderOrden() {
     scoreInput.value = current.score ?? "";
     notesInput.value = current.notes ?? "";
     passedInput.checked = Boolean(current.passed);
-    orderNodeRefs.set(id, { scoreInput, notesInput, passedInput });
+    node.classList.toggle("is-passed", Boolean(current.passed));
+    orderNodeRefs.set(id, { scoreInput, notesInput, passedInput, card: node });
     fragment.appendChild(node);
     });
 
