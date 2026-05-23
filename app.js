@@ -44,12 +44,13 @@ const byDay = {
 
 const breakDefinitions = {
   sabado: [
-    { after: 128, label: "Break 1 hora - premiacion. Vuelve 15:00 a 20:00" },
-    { after: 263, label: "Break 15 minutos - 20:15 a 21:45" }
+    { after: 132, label: "Break 1 hora - premiacion. Volvemos de 15:00 a 20:25" },
+    { after: 278, label: "Break 20 minutos - desde las 20:25 a 22:10" }
   ],
   domingo: [
-    { after: 94, label: "Break 1 hora - premiacion. 13:30 a 15:45" },
-    { after: 159, label: "Break 30 minutos - 15:45 a 17:30" }
+    { after: 50, label: "Break 5 minutos para jueces" },
+    { after: 92, label: "Break 1 hora - premiacion. Desde 13:30 hasta 15:50" },
+    { after: 158, label: "Break de 30 minutos - desde las 16:20 a 18:50" }
   ]
 };
 
